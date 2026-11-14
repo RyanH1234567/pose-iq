@@ -82,12 +82,12 @@ nav button.on{color:var(--acc)}
     <div class="row"><label for="rec">Record video</label><input type="checkbox" id="rec"></div>
     <div id="recOpts">
       <div class="row"><label for="cam2">Camera</label><select id="cam2"><option value="user">Front</option><option value="environment">Back</option></select></div>
-      <div class="row"><label for="mode">What to save</label><select id="mode"><option value="poses">Each pose as its own clip</option><option value="full">Whole round as one video</option><option value="both">Both</option></select></div>
+      <div class="row"><label for="mode">What to save</label><select id="mode"><option value="poses">Each pose as its own clip</option><option value="full">Whole round as one video</option></select></div>
     </div>
   </div>
   <p class="note">The back camera shows no mirror view, so prop the phone where it can see you. Voice call-outs aren’t recorded in the video.</p>
   <h2>Look</h2>
-  <div class="row"><label for="theme">Color theme</label><select id="theme"><option value="midnight">Midnight</option><option value="graphite">Graphite</option><option value="light">Light</option></select></div>
+  <div class="row"><label for="theme">Color theme</label><select id="theme"><option value="midnight">Midnight</option><option value="light">Light</option></select></div>
   <p class="summary" id="summary"></p>
   <div id="startBar"><button class="go" id="start">Start round</button></div>
 </main>
@@ -122,13 +122,14 @@ const $=s=>document.querySelector(s);
 const DEFAULT=["Front relaxed","Side relaxed (right)","Rear relaxed","Side relaxed (left)","Front double biceps","Front lat spread","Side chest","Back double biceps","Back lat spread","Side triceps","Abs and thighs","Most muscular","Favorite classic pose"];
 const THEMES={
   midnight:{bg:'#0c1a2b',panel:'#162a42',line:'#2c4767',acc:'#5cc8ff',accInk:'#05263a',ink:'#eef4fb',mute:'#8fa6bf',bad:'#ff8a7a',nav:'#08121f',s1:'#1e4066',s2:'#08121f'},
-  graphite:{bg:'#151515',panel:'#232323',line:'#3b3b3b',acc:'#ff8a3d',accInk:'#2b1200',ink:'#f3f3f3',mute:'#9a9a9a',bad:'#ff8a7a',nav:'#0e0e0e',s1:'#3a2a20',s2:'#0d0d0d'},
   light:{bg:'#f4f6f9',panel:'#ffffff',line:'#d5dce6',acc:'#1f6feb',accInk:'#ffffff',ink:'#14202e',mute:'#5d6b7c',bad:'#c8301f',nav:'#ffffff',s1:'#1e4066',s2:'#08121f'}};
 let cfg={v:2,poses:DEFAULT.map(n=>({n,on:true})),hold:30,rest:10,rounds:1,rec:true,cam:'user',mode:'poses',voice:false,theme:'midnight'};
 try{const s=JSON.parse(localStorage.getItem('poseRound'))||{};
   if(s.poses&&(s.v||0)<2){const old=new Map(s.poses.map(p=>[p.n,p.on]));
     s.poses=[...DEFAULT.map(n=>({n,on:old.has(n)?old.get(n):true})),...s.poses.filter(p=>!DEFAULT.includes(p.n))]}
   Object.assign(cfg,s,{v:2})}catch(e){}
+if(cfg.mode==='both')cfg.mode='poses';
+if(!THEMES[cfg.theme])cfg.theme='midnight';
 const save=()=>{try{localStorage.setItem('poseRound',JSON.stringify(cfg))}catch(e){}};
 function applyTheme(){const t=THEMES[cfg.theme]||THEMES.midnight,r=document.documentElement.style;
   for(const k in t)r.setProperty('--'+k,t[k]);$('#themeMeta').content=t.bg}
