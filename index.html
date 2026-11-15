@@ -72,6 +72,30 @@ nav button.on{color:var(--acc)}
 .btns{display:flex;gap:10px}.btns button{flex:1;padding:16px;background:#ffffff2a;color:#fff;backdrop-filter:blur(8px)}
 .btns button.warn{color:#ffb4aa}
 .toast{position:fixed;left:16px;right:16px;top:calc(12px + env(safe-area-inset-top));z-index:30;background:var(--panel);border:1px solid var(--acc);padding:12px 14px;border-radius:12px}
+
+.sh{display:flex;align-items:center;gap:10px;background:var(--panel);border-radius:12px;padding:10px 12px;margin-top:10px;cursor:pointer}
+.sh .t{flex:1;min-width:0}.sh .t b{display:block;font-weight:600}.sh .t small{color:var(--mute)}.sh .chev{color:var(--acc);width:14px}
+.cl{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+.cl.picked{background:var(--panel)}
+.th{width:64px;height:84px;border-radius:8px;background:var(--panel);position:relative;flex:none;overflow:hidden;display:grid;place-items:center;color:var(--acc)}
+.th img{width:100%;height:100%;object-fit:cover}
+.th.full{background:var(--line)}
+.th .dur{position:absolute;right:3px;bottom:3px;background:#000b;color:#fff;font-size:11px;padding:1px 5px;border-radius:4px}
+.cl .i{flex:1;min-width:0}.cl .i b{display:block;font-weight:600}.cl .i small{color:var(--mute)}
+.np{color:var(--mute);font-size:13px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.star{background:none;font-size:24px;padding:6px 8px;color:var(--mute)}.star.on{color:var(--acc)}
+#selBar{flex-wrap:wrap}#selBar span{flex-basis:100%}#selBar button{padding:10px 12px;font-size:14px}
+.ov{position:fixed;inset:0;z-index:25;background:var(--bg);overflow:auto;padding:calc(12px + env(safe-area-inset-top)) 14px calc(20px + env(safe-area-inset-bottom))}
+.ovTop{display:flex;align-items:center;gap:10px;margin-bottom:12px}.ovTop b{flex:1;text-align:center;font-weight:600}
+.ov video{width:100%;max-height:52vh;background:#000;border-radius:12px;display:block;object-fit:contain}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lbl{font-size:14px;font-weight:600;margin:0 0 6px}
+.off{display:flex;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap}.off span{flex-basis:100%;font-size:14px}.off button{padding:8px 10px;font-size:14px}.off output{min-width:60px;text-align:center;font-variant-numeric:tabular-nums}
+.ctl{display:flex;align-items:center;gap:10px;margin-top:14px}.ctl input{flex:1;min-width:0;accent-color:var(--acc)}
+.sp{display:flex;gap:8px;margin-top:10px}.sp button{flex:1}.sp button.on{background:var(--acc);color:var(--accInk)}
+.n2{background:var(--panel);border-radius:10px;padding:8px 10px;font-size:13px;min-height:44px;margin-top:10px}
+.vb{display:flex;gap:8px;margin-top:12px}.vb button{flex:1}
+#vStar.on{color:var(--acc)}
 </style></head><body>
 
 <main id="setup">
@@ -103,10 +127,10 @@ nav button.on{color:var(--acc)}
     <div class="row"><label for="rec">Record video</label><input type="checkbox" id="rec"></div>
     <div id="recOpts">
       <div class="row"><label for="cam2">Camera</label><select id="cam2"><option value="user">Front</option><option value="environment">Back</option></select></div>
-      <div class="row"><label for="mode">What to save</label><select id="mode"><option value="poses">Each pose as its own clip</option><option value="full">Whole round as one video</option></select></div>
+      <div class="row"><label for="mode">What to save</label><select id="mode"><option value="poses">Each pose as its own clip</option><option value="full">Whole round as one video</option><option value="both">Both: each pose and the whole round</option></select></div>
     </div>
   </div>
-  <p class="note">The back camera shows no mirror view, so prop the phone where it can see you. Voice call-outs aren’t recorded in the video.</p>
+  <p class="note">The back camera shows no mirror view, so prop the phone where it can see you. Voice call-outs aren’t recorded in the video. “Both” records two videos at once, so it uses more battery and space.</p>
   <h2>Look</h2>
   <div class="row"><label for="theme">Color theme</label><select id="theme"><option value="midnight">Midnight</option><option value="light">Light</option></select></div>
   <p class="summary" id="summary"></p>
@@ -117,7 +141,7 @@ nav button.on{color:var(--acc)}
   <h1>My clips</h1>
   <p class="summary" id="usage"></p>
   <div class="bar" id="libBar"><select id="filter" aria-label="Filter clips"></select><button id="selBtn">Select</button></div>
-  <div id="selBar" class="hide"><span id="selCount"></span><button id="selAll">All</button><button id="selSave">Save</button><button id="selDel" class="warn">Delete</button></div>
+  <div id="selBar" class="hide"><span id="selCount"></span><button id="selAll">All</button><button id="selCmp">Compare</button><button id="selSave">Save</button><button id="selDel" class="warn">Delete</button></div>
   <div id="clips"></div>
   <button id="delAll" class="warn hide">Delete all clips</button>
 </main>
@@ -139,6 +163,25 @@ nav button.on{color:var(--acc)}
   </div>
 </section>
 
+<section id="viewer" class="ov hide">
+  <div class="ovTop"><button id="vClose">Close</button><b id="vTitle"></b><button id="vStar" class="star" aria-label="Star clip" aria-pressed="false">☆</button></div>
+  <video id="vVid" controls playsinline></video>
+  <p class="summary" id="vMeta" style="margin:10px 2px"></p>
+  <textarea id="vNote" rows="3" placeholder="Add a note (what to fix, what felt good)" aria-label="Note for this clip"></textarea>
+  <div class="vb"><button id="vSave">Save to Photos</button><button id="vDel" class="warn">Delete</button></div>
+</section>
+<section id="cmp" class="ov hide">
+  <div class="ovTop"><button id="cClose">Done</button><b id="cTitle"></b><span style="width:64px"></span></div>
+  <div class="two">
+    <div><div class="lbl" id="cLa"></div><video id="cA" playsinline muted preload="auto"></video></div>
+    <div><div class="lbl" id="cLb"></div><video id="cB" playsinline muted preload="auto"></video></div>
+  </div>
+  <div class="ctl"><button id="cPlay">Play</button><input type="range" id="cSc" min="0" max="30" step="0.1" value="0" aria-label="Position"><span class="mu" id="cTm"></span></div>
+  <div class="sp"><button data-s="0.5">0.5x</button><button data-s="1" class="on">1x</button></div>
+  <div class="off" id="offA"></div><div class="off" id="offB"></div>
+  <p class="note">Offset moves where a clip starts. Positive skips ahead in the clip; negative delays it. Use it to line up the moment you hit the pose.</p>
+  <div class="two"><div class="n2" id="cNa"></div><div class="n2" id="cNb"></div></div>
+</section>
 <nav><button id="tabSetup" class="on">Round</button><button id="tabLib">Clips</button></nav>
 
 <script>
@@ -152,7 +195,7 @@ try{const s=JSON.parse(localStorage.getItem('poseRound'))||{};
   if(s.poses&&(s.v||0)<2){const old=new Map(s.poses.map(p=>[p.n,p.on]));
     s.poses=[...DEFAULT.map(n=>({n,on:old.has(n)?old.get(n):true})),...s.poses.filter(p=>!DEFAULT.includes(p.n))]}
   Object.assign(cfg,s,{v:3})}catch(e){}
-if(cfg.mode==='both')cfg.mode='poses';
+
 const holdFor=p=>cfg.holdMode==='each'?(p.hold||cfg.hold):cfg.hold;
 let notes={};try{notes=JSON.parse(localStorage.getItem('poseNotes'))||{}}catch(e){}
 const saveNotes=()=>{try{localStorage.setItem('poseNotes',JSON.stringify(notes))}catch(e){}};
@@ -216,7 +259,7 @@ $('#rSave').onclick=()=>{const n=$('#rName').value.trim();if(!n)return toast('Ty
 $('#rLoad').onclick=()=>{const r=cfg.routines[$('#routineSel').value];if(!r)return;
   Object.assign(cfg,JSON.parse(JSON.stringify(r)));save();renderSetup();toast('Routine loaded.');window.scrollTo(0,0)};
 $('#rDel').onclick=()=>{const n=$('#routineSel').value;if(n&&confirm(`Delete the routine “${n}”?`)){delete cfg.routines[n];save();renderRoutines()}};
-$('#addPose').onclick=()=>{const v=$('#newPose').value.trim();if(!v)return;cfg.poses.push({n:v,on:true,hold:cfg.hold});$('#newPose').value='';save();renderSetup()};
+$('#addPose').onclick=()=>{const v=$('#newPose').value.trim();if(!v)return;if(cfg.poses.some(p=>p.n.toLowerCase()===v.toLowerCase()))return toast('That pose is already in your list.');cfg.poses.push({n:v,on:true,hold:cfg.hold});$('#newPose').value='';save();renderSetup()};
 const num=(id,key,min,max)=>$(id).onchange=e=>{let v=parseInt(e.target.value,10);if(isNaN(v))v=cfg[key];cfg[key]=Math.min(max,Math.max(min,v));e.target.value=cfg[key];save();summary()};
 num('#hold','hold',5,300);num('#ready','ready',0,60);
 $('#holdMode').onchange=e=>{cfg.holdMode=e.target.value;if(cfg.holdMode==='each')cfg.poses.forEach(p=>{if(!p.hold)p.hold=cfg.hold});save();renderSetup()};
@@ -250,12 +293,17 @@ function toast(t){const d=document.createElement('div');d.className='toast';d.te
 let steps=[],si=0,left=0,last=0,paused=false,timer=null,shown=-1,stream=null,fstream=null,rec=null,frec=null,pending=[],mt='',saved=0,wake=null;
 const pickMime=()=>{for(const t of['video/mp4','video/webm;codecs=vp9','video/webm'])if(window.MediaRecorder&&MediaRecorder.isTypeSupported(t))return t;return''};
 
+let sessionId=0;
+function snap(r){const v=$('#cam');if(!r||!stream||!v.videoWidth)return;
+  const c=document.createElement('canvas');c.width=240;c.height=Math.round(240*v.videoHeight/v.videoWidth);
+  try{c.getContext('2d').drawImage(v,0,0,c.width,c.height);c.toBlob(b=>{if(b)r.thumb=b},'image/jpeg',.72)}catch(e){}}
 function mkRec(strm,pose,full,round){
   const r=new MediaRecorder(strm,mt?{mimeType:mt}:undefined),mine=[],type=r.mimeType||mt||'video/mp4',started=Date.now();
+  r.paused=0;
   let done;pending.push(new Promise(res=>done=res));
   r.ondataavailable=e=>{if(e.data&&e.data.size)mine.push(e.data)};
   r.onstop=async()=>{const blob=new Blob(mine,{type});
-    if(blob.size>1000){try{await tx('readwrite',s=>s.add({pose,full,round,date:started,type,size:blob.size,blob}));saved++}
+    if(blob.size>1000){try{await tx('readwrite',s=>s.add({pose,full,round,date:started,session:sessionId,dur:Math.round((Date.now()-started-r.paused)/100)/10,thumb:r.thumb||null,type,size:blob.size,blob}));saved++}
       catch(e){toast('Couldn’t save a clip. Storage may be full.')}}
     done()};
   r.onerror=()=>done();
@@ -275,7 +323,7 @@ async function startSession(){
   }
   beep(440,.05);
   if(cfg.voice&&'speechSynthesis' in window){const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u)} // unlock voice on this tap
-  saved=0;pending=[];paused=false;$('#pause').textContent='Pause';
+  sessionId=Date.now();saved=0;pending=[];paused=false;$('#pause').textContent='Pause';
   $('#session').classList.remove('hide');$('#cam').classList.add('hide');
   if(cfg.rec&&navigator.mediaDevices&&window.MediaRecorder){
     try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:cfg.cam},width:{ideal:1280},height:{ideal:720}},audio:false});
@@ -300,6 +348,7 @@ function enter(i){
 function loop(){
   const now=performance.now();if(!paused)left-=now-last;last=now;
   const s=steps[si],sec=Math.max(0,Math.ceil(left/1000));
+  if(s.type==='pose'&&!s.snapped&&left<=s.dur*500){s.snapped=true;snap(rec);if(frec&&!frec.thumb)snap(frec)}
   $('#secs').textContent=sec;
   $('#ring').style.strokeDashoffset=282.74*(1-Math.max(0,left)/(s.dur*1000));
   if(sec!==shown){shown=sec;if(sec>0&&sec<=3&&!paused)beep(660,.12)}
@@ -320,60 +369,89 @@ async function finish(done){
   if(wake){wake.release().catch(()=>{});wake=null}
   $('#session').classList.add('hide');
   if(done)beep(988,.6);
-  if(saved){toast(`${saved} clip${saved>1?'s':''} saved to Clips.`);tab('lib')}
+  if(saved){openSess.add('s'+sessionId);toast(`${saved} clip${saved>1?'s':''} saved to Clips.`);tab('lib')}
 }
 $('#start').onclick=startSession;
 $('#pause').onclick=()=>{paused=!paused;$('#pause').textContent=paused?'Resume':'Pause';
-  [rec,frec].forEach(r=>{if(r&&r.state!=='inactive'){try{paused?r.pause():r.resume()}catch(e){}}})};
+  [rec,frec].forEach(r=>{if(r&&r.state!=='inactive'){try{if(paused){r.pause();r._ps=Date.now()}else{r.resume();r.paused+=Date.now()-(r._ps||Date.now())}}catch(e){}}})};
 $('#stop').onclick=()=>{if(confirm('End this round now?'))finish(false)};
 
 /* ---------- clips library ---------- */
-let urls=[],all=[],filt='all',selMode=false,sel=new Set();
+const h=(t,p={},...k)=>{const e=document.createElement(t);for(const a in p){if(a==='class')e.className=p[a];else if(a==='text')e.textContent=p[a];else e.setAttribute(a,p[a])}e.append(...k.filter(x=>x!=null&&x!==false));return e};
+let urls=[],all=[],filt='all',selMode=false,sel=new Set(),openSess=new Set(),openInit=false,stars={};
+try{stars=JSON.parse(localStorage.getItem('poseStars'))||{}}catch(e){}
+const saveStars=()=>{try{localStorage.setItem('poseStars',JSON.stringify(stars))}catch(e){}};
 const label=c=>c.full?'Full round':c.pose;
-function updSel(){$('#selCount').textContent=`${sel.size} selected`;$('#selSave').disabled=$('#selDel').disabled=!sel.size;
-  document.querySelectorAll('.clip').forEach(el=>el.classList.toggle('picked',sel.has(+el.dataset.id)))}
+const fmtT=s=>{s=Math.max(0,Math.round(s));return Math.floor(s/60)+':'+('0'+s%60).slice(-2)};
+const mb=n=>(n/1048576).toFixed(1)+' MB';
+const key=c=>(c.pose||'').trim().toLowerCase();
+function dayLabel(ts){const d=new Date(ts),n=new Date(),z=x=>new Date(x.getFullYear(),x.getMonth(),x.getDate()).getTime();
+  const diff=Math.round((z(n)-z(d))/864e5),time=d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+  return(diff===0?'Today':diff===1?'Yesterday':d.toLocaleDateString([],{month:'short',day:'numeric'}))+', '+time}
+function groupSessions(list){
+  const g=new Map(),legacy=list.filter(c=>!c.session).sort((a,b)=>b.date-a.date);
+  list.filter(c=>c.session).forEach(c=>{const k='s'+c.session;if(!g.has(k))g.set(k,{key:k,start:c.session,clips:[]});g.get(k).clips.push(c)});
+  let cur=null,prev=0;
+  legacy.forEach(c=>{if(!cur||prev-c.date>18e5){cur={key:'l'+c.date,start:c.date,clips:[]};g.set(cur.key,cur)}cur.clips.push(c);cur.start=c.date;prev=c.date});
+  return[...g.values()].map(x=>{x.clips.sort((a,b)=>(b.full?1:0)-(a.full?1:0)||a.date-b.date);return x}).sort((a,b)=>b.start-a.start)}
+function clipRow(c,showDate){
+  const th=h('div',{class:'th'+(c.full?' full':'')});
+  if(c.thumb){const u=URL.createObjectURL(c.thumb);urls.push(u);th.append(h('img',{src:u,alt:''}))}else th.append(h('span',{text:'▶'}));
+  if(c.dur)th.append(h('span',{class:'dur',text:fmtT(c.dur)}));
+  const w=new Date(c.date),meta=(showDate?w.toLocaleDateString([],{month:'short',day:'numeric'})+' · ':'')+w.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})+' · '+mb(c.size);
+  const info=h('div',{class:'i'},h('b',{text:label(c)}),h('small',{text:meta}));
+  if(notes[c.id])info.append(h('div',{class:'np',text:notes[c.id]}));
+  const st=h('button',{class:'star'+(stars[c.id]?' on':''),'aria-label':'Star clip','aria-pressed':String(!!stars[c.id]),text:stars[c.id]?'★':'☆'});
+  st.onclick=e=>{e.stopPropagation();stars[c.id]?delete stars[c.id]:stars[c.id]=1;saveStars();
+    const n=Object.keys(stars).length;if(filt==='star'||n===0||(stars[c.id]&&n===1))renderLib();else{st.classList.toggle('on',!!stars[c.id]);st.textContent=stars[c.id]?'★':'☆';st.setAttribute('aria-pressed',String(!!stars[c.id]))}};
+  const row=h('div',{class:'cl'+(sel.has(c.id)?' picked':''),'data-id':c.id});
+  if(selMode){const cb=h('input',{type:'checkbox','aria-label':'Select '+label(c)});cb.checked=sel.has(c.id);cb.onclick=e=>e.stopPropagation();cb.onchange=()=>{cb.checked?sel.add(c.id):sel.delete(c.id);updSel()};row.append(cb)}
+  row.append(th,info,st);
+  row.onclick=()=>{if(selMode){const cb=row.querySelector('input');cb.checked=!cb.checked;cb.onchange()}else openViewer(c)};
+  return row}
+function updSel(){$('#selCount').textContent=`${sel.size} selected`;$('#selSave').disabled=$('#selDel').disabled=!sel.size;$('#selCmp').disabled=sel.size!==2;
+  document.querySelectorAll('.cl').forEach(el=>el.classList.toggle('picked',sel.has(+el.dataset.id)))}
 async function renderLib(){
   urls.forEach(URL.revokeObjectURL);urls=[];
   all=(await tx('readonly',s=>s.getAll()))||[];all.sort((a,b)=>b.date-a.date);
   sel=new Set([...sel].filter(id=>all.some(c=>c.id===id)));
-  const opts=[['all','All clips']];if(all.some(c=>c.full))opts.push(['full','Full rounds']);
-  [...new Set(all.filter(c=>!c.full).map(c=>c.pose))].sort().forEach(p=>opts.push(['p:'+p,p]));
+  const opts=[['all','All clips, by session']];
+  if(all.some(c=>stars[c.id]))opts.push(['star','Starred']);
+  if(all.some(c=>c.full))opts.push(['full','Full rounds']);
+  const seen=new Map();all.filter(c=>!c.full).forEach(c=>{if(!seen.has(key(c)))seen.set(key(c),c.pose.trim())});
+  [...seen].sort((x,y)=>x[1].localeCompare(y[1])).forEach(([k,n])=>opts.push(['p:'+k,n]));
   if(!opts.some(o=>o[0]===filt))filt='all';
-  const f=$('#filter');f.innerHTML='';opts.forEach(([v,t])=>{const o=document.createElement('option');o.value=v;o.textContent=t;f.append(o)});f.value=filt;
-  const list=all.filter(c=>filt==='all'||(filt==='full'?c.full:(!c.full&&'p:'+c.pose===filt)));
+  const f=$('#filter');f.innerHTML='';opts.forEach(([v,t])=>f.append(h('option',{value:v,text:t})));f.value=filt;
   const box=$('#clips');box.innerHTML='';
-  if(!list.length)box.innerHTML='<div class="empty">'+(all.length?'No clips for this filter.':'No clips yet. Turn on recording and run a round.')+'</div>';
-  list.forEach(c=>{
-    const u=URL.createObjectURL(c.blob);urls.push(u);
-    const el=document.createElement('div');el.className='clip';el.dataset.id=c.id;
-    if(selMode){const p=document.createElement('label');p.className='pick';const cb=document.createElement('input');cb.type='checkbox';cb.checked=sel.has(c.id);
-      cb.onchange=()=>{cb.checked?sel.add(c.id):sel.delete(c.id);updSel()};p.append(cb,'Select this clip');el.append(p)}
-    const v=document.createElement('video');v.src=u;v.controls=true;v.playsInline=true;v.preload='metadata';
-    const m=document.createElement('div');m.className='meta';
-    const t=document.createElement('strong');t.textContent=label(c);
-    const sm=document.createElement('small');
-    sm.textContent=' · '+new Date(c.date).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})+' · '+(c.size/1048576).toFixed(1)+' MB';
-    m.append(t,sm);
-    const nt=document.createElement('div');nt.className='notes';
-    const ta=document.createElement('textarea');ta.rows=2;ta.placeholder='Add a note (what to fix, what felt good)';ta.value=notes[c.id]||'';ta.setAttribute('aria-label','Note for '+label(c));
-    ta.onchange=()=>{const x=ta.value.trim();x?notes[c.id]=x:delete notes[c.id];saveNotes()};nt.append(ta);
-    el.append(v,m,nt);
-    if(!selMode){const a=document.createElement('div');a.className='acts';
-      const sv=document.createElement('button');sv.textContent='Save to Photos';sv.onclick=()=>saveClips([c]);
-      const dl=document.createElement('button');dl.textContent='Delete';dl.className='warn';
-      dl.onclick=()=>delClips([c.id],'Delete this clip?');
-      a.append(sv,dl);el.append(a)}
-    box.append(el)});
+  if(!all.length)box.append(h('div',{class:'empty',text:'No clips yet. Turn on recording and run a round.'}));
+  else if(filt==='all'){
+    const groups=groupSessions(all);
+    if(!openInit&&groups.length){openSess.add(groups[0].key);openInit=true}
+    groups.forEach(g=>{
+      const open=openSess.has(g.key),total=g.clips.reduce((n,c)=>n+c.size,0);
+      const head=h('div',{class:'sh',role:'button',tabindex:'0','aria-expanded':String(open)},
+        h('span',{class:'chev',text:open?'▾':'▸'}),
+        h('span',{class:'t'},h('b',{text:dayLabel(g.start)}),h('small',{text:`${g.clips.length} clip${g.clips.length>1?'s':''} · ${Math.round(total/1048576)} MB`})));
+      const flip=()=>{open?openSess.delete(g.key):openSess.add(g.key);renderLib()};
+      head.onclick=flip;head.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();flip()}};
+      if(selMode){const cb=h('input',{type:'checkbox','aria-label':'Select all clips in this session'});cb.checked=g.clips.every(c=>sel.has(c.id));
+        cb.onclick=e=>e.stopPropagation();cb.onchange=()=>{g.clips.forEach(c=>cb.checked?sel.add(c.id):sel.delete(c.id));renderLib()};head.append(cb)}
+      else{const d=h('button',{class:'x','aria-label':'Delete this session',text:'Delete'});
+        d.onclick=e=>{e.stopPropagation();delClips(g.clips.map(c=>c.id),`Delete all ${g.clips.length} clip${g.clips.length>1?'s':''} from this session? This can’t be undone.`)};head.append(d)}
+      box.append(head);if(open)g.clips.forEach(c=>box.append(clipRow(c,false)))});
+  }else{
+    const list=all.filter(c=>filt==='star'?stars[c.id]:filt==='full'?c.full:(!c.full&&'p:'+key(c)===filt));
+    box.append(h('div',{class:'mu note',text:'Newest first'}));list.forEach(c=>box.append(clipRow(c,true)))}
   const used=all.reduce((n,c)=>n+c.size,0);
-  $('#usage').textContent=all.length?`${all.length} clip${all.length>1?'s':''} · ${(used/1048576).toFixed(0)} MB on this phone`:'';
+  $('#usage').textContent=all.length?`${all.length} clip${all.length>1?'s':''} · ${Math.round(used/1048576)} MB on this phone`:'';
   $('#delAll').classList.toggle('hide',!all.length||selMode);$('#libBar').classList.toggle('hide',!all.length);
   $('#selBar').classList.toggle('hide',!selMode);updSel();
 }
-async function delClips(ids,msg){
-  if(!confirm(msg))return;
+async function removeClips(ids){
   await tx('readwrite',s=>{ids.forEach(id=>s.delete(id))});
-  ids.forEach(id=>delete notes[id]);saveNotes();sel=new Set([...sel].filter(i=>!ids.includes(i)));renderLib();
-}
+  ids.forEach(id=>{delete notes[id];delete stars[id]});saveNotes();saveStars();
+  sel=new Set([...sel].filter(i=>!ids.includes(i)));renderLib()}
+async function delClips(ids,msg){if(confirm(msg))removeClips(ids)}
 async function saveClips(cs){
   const files=cs.map(c=>{const ext=c.type.includes('mp4')?'mp4':'webm';
     const stamp=new Date(c.date).toISOString().slice(0,19).replace(/[:T]/g,'-');
@@ -383,11 +461,59 @@ async function saveClips(cs){
 }
 $('#filter').onchange=e=>{filt=e.target.value;renderLib()};
 $('#selBtn').onclick=()=>{selMode=!selMode;sel.clear();$('#selBtn').textContent=selMode?'Done':'Select';renderLib()};
-$('#selAll').onclick=()=>{const vis=[...document.querySelectorAll('.clip')].map(e=>+e.dataset.id);
+$('#selAll').onclick=()=>{const vis=[...document.querySelectorAll('.cl')].map(e=>+e.dataset.id);
   const every=vis.length&&vis.every(id=>sel.has(id));vis.forEach(id=>every?sel.delete(id):sel.add(id));renderLib()};
 $('#selSave').onclick=()=>saveClips(all.filter(c=>sel.has(c.id)));
 $('#selDel').onclick=()=>delClips([...sel],`Delete ${sel.size} clip${sel.size>1?'s':''}? This can’t be undone.`);
 $('#delAll').onclick=()=>delClips(all.map(c=>c.id),`Delete all ${all.length} clips? This can’t be undone.`);
+$('#selCmp').onclick=()=>{const cs=all.filter(c=>sel.has(c.id));if(cs.length!==2)return;
+  const ok=(cs[0].full&&cs[1].full)||(!cs[0].full&&!cs[1].full&&key(cs[0])===key(cs[1]));
+  if(!ok)return toast('Pick two clips of the same pose, or two full rounds.');
+  cs.sort((a,b)=>a.date-b.date);openCompare(cs[0],cs[1])};
+
+/* ---------- single clip viewer ---------- */
+let cur=null,vUrl=null;
+function starBtn(){const on=!!stars[cur.id];$('#vStar').textContent=on?'★':'☆';$('#vStar').classList.toggle('on',on);$('#vStar').setAttribute('aria-pressed',String(on))}
+function openViewer(c){
+  cur=c;vUrl=URL.createObjectURL(c.blob);$('#vVid').src=vUrl;$('#vTitle').textContent=label(c);
+  $('#vMeta').textContent=new Date(c.date).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})+' · '+mb(c.size)+(c.dur?' · '+fmtT(c.dur):'');
+  $('#vNote').value=notes[c.id]||'';starBtn();$('#viewer').classList.remove('hide')}
+function closeViewer(){const v=$('#vVid');v.pause();v.removeAttribute('src');v.load();if(vUrl)URL.revokeObjectURL(vUrl);vUrl=null;cur=null;$('#viewer').classList.add('hide');renderLib()}
+$('#vClose').onclick=closeViewer;
+$('#vStar').onclick=()=>{stars[cur.id]?delete stars[cur.id]:stars[cur.id]=1;saveStars();starBtn()};
+$('#vNote').oninput=e=>{const x=e.target.value.trim();x?notes[cur.id]=x:delete notes[cur.id];saveNotes()};
+$('#vSave').onclick=()=>saveClips([cur]);
+$('#vDel').onclick=()=>{if(!confirm('Delete this clip?'))return;const id=cur.id;closeViewer();removeClips([id])};
+
+/* ---------- side-by-side compare ---------- */
+let cm=null;
+const tmax=()=>Math.max(1,...cm.s.map(s=>s.dur-s.off));
+const offTxt=s=>(s.off>0?'+':'')+s.off.toFixed(1)+'s';
+function cmUI(){const m=tmax();if(cm.t>m)cm.t=m;$('#cSc').max=m;$('#cSc').value=cm.t;$('#cTm').textContent=fmtT(cm.t)+' / '+fmtT(m);$('#cPlay').textContent=cm.play?'Pause':'Play'}
+function apply(){cm.s.forEach((s,i)=>{const v=cm.v[i],st=cm.t+s.off;v.playbackRate=cm.speed;
+  if(st<0||st>s.dur){if(!v.paused)v.pause();const edge=st<0?0:s.dur;if(Math.abs(v.currentTime-edge)>.05)v.currentTime=edge;return}
+  if(cm.play){if(v.paused)v.play().catch(()=>{});if(Math.abs(v.currentTime-st)>.35)v.currentTime=st}
+  else{if(!v.paused)v.pause();if(Math.abs(v.currentTime-st)>.04)v.currentTime=st}})}
+function cPause(){cm.play=false;cancelAnimationFrame(cm.raf);cm.v.forEach(v=>v.pause());cmUI()}
+function tick(now){if(!cm||!cm.play)return;cm.t+=(now-cm.last)/1000*cm.speed;cm.last=now;
+  const m=tmax();if(cm.t>=m){cm.t=m;apply();cPause();return}
+  apply();$('#cSc').value=cm.t;$('#cTm').textContent=fmtT(cm.t)+' / '+fmtT(m);cm.raf=requestAnimationFrame(tick)}
+function nudge(i,t,d){const b=h('button',{text:t,'aria-label':`${i?'Right':'Left'} clip, ${d<0?'back':'forward'} ${Math.abs(d)} second${Math.abs(d)===1?'':'s'}`});
+  b.onclick=()=>{const s=cm.s[i];s.off=Math.max(-60,Math.min(60,Math.round((s.off+d)*10)/10));s.out.textContent=offTxt(s);cmUI();apply()};return b}
+function buildOff(i){const box=$(i?'#offB':'#offA');box.innerHTML='';const out=h('output',{text:'0.0s'});cm.s[i].out=out;
+  box.append(h('span',{text:(i?'Right':'Left')+' clip offset'}),nudge(i,'−1s',-1),nudge(i,'−0.1',-.1),out,nudge(i,'+0.1',.1),nudge(i,'+1s',1))}
+function openCompare(a,b){
+  cm={s:[{c:a,off:0,dur:a.dur||30},{c:b,off:0,dur:b.dur||30}],v:[$('#cA'),$('#cB')],u:[URL.createObjectURL(a.blob),URL.createObjectURL(b.blob)],t:0,play:false,speed:1,raf:0,last:0};
+  cm.v.forEach((v,i)=>{v.src=cm.u[i];v.onloadedmetadata=()=>{if(isFinite(v.duration)&&v.duration>0)cm.s[i].dur=v.duration;cmUI();apply()}});
+  $('#cTitle').textContent=a.full?'Full rounds':a.pose;$('#cLa').textContent=dayLabel(a.date);$('#cLb').textContent=dayLabel(b.date);
+  $('#cNa').textContent=notes[a.id]||'No note on this clip.';$('#cNb').textContent=notes[b.id]||'No note on this clip.';
+  document.querySelectorAll('.sp button').forEach(x=>x.classList.toggle('on',x.dataset.s==='1'));
+  buildOff(0);buildOff(1);$('#cmp').classList.remove('hide');cmUI()}
+function closeCompare(){cPause();cm.v.forEach(v=>{v.removeAttribute('src');v.load()});cm.u.forEach(u=>URL.revokeObjectURL(u));cm=null;$('#cmp').classList.add('hide')}
+$('#cClose').onclick=closeCompare;
+$('#cPlay').onclick=()=>{if(cm.play){cPause();return}if(cm.t>=tmax())cm.t=0;cm.play=true;cm.last=performance.now();cm.raf=requestAnimationFrame(tick);cmUI();apply()};
+$('#cSc').oninput=e=>{cm.t=+e.target.value;apply();cmUI()};
+document.querySelectorAll('.sp button').forEach(b=>b.onclick=()=>{if(!cm)return;cm.speed=+b.dataset.s;document.querySelectorAll('.sp button').forEach(x=>x.classList.toggle('on',x===b));apply()});
 
 renderSetup();
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
